@@ -38,10 +38,29 @@ def apply_argmax(array, argmax, axis):
     return torch.squeeze(max_, dim=axis)
 
 
+def std_float64_cpu(X, axis=None, demean=True, keepdims=False):
+    """Compute the standard deviation of X with double precision on cpu,
+    and cast back the result to original dtype.
+    """
+    X_64 = X.cpu().numpy().astype('float64')
+    X_std = (X_64 ** 2).sum(dim=axis, dtype='float64')
+    if demean:
+        X_std -= X_64.sum(axis, dtype='float64') ** 2 / X.shape[axis]
+    X_std = X_std ** .5
+    X_std /= (X.shape[axis] ** .5)
+
+    X_std = torch.as_tensor(X_std, dtype=X.dtype, device=X.device)
+    if keepdims:
+        X_std = X_std.unsqueeze(dim=axis)
+
+    return X_std
+
 def std_float64(X, axis=None, demean=True, keepdims=False):
     """Compute the standard deviation of X with double precision,
     and cast back the result to original dtype.
     """
+    if X.device.type == "mps":
+        return std_float64_cpu(X, axis=axis, demean=demean, keepdims=keepdims)
     X_64 = torch.as_tensor(X, dtype=torch.float64)
     X_std = (X_64 ** 2).sum(dim=axis, dtype=torch.float64)
     if demean:
@@ -55,12 +74,14 @@ def std_float64(X, axis=None, demean=True, keepdims=False):
 
     return X_std
 
-
 def mean_float64(X, axis=None, keepdims=False):
     """Compute the mean of X with double precision,
     and cast back the result to original dtype.
     """
-    X_mean = X.sum(axis, dtype=torch.float64) / X.shape[axis]
+    if X.device.type == "mps":
+        X_mean = X.cpu().numpy().sum(axis, dtype='float64') / X.shape[axis]
+    else:
+        X_mean = X.sum(axis, dtype=torch.float64) / X.shape[axis]
 
     X_mean = torch.as_tensor(X_mean, dtype=X.dtype, device=X.device)
     if keepdims:
@@ -141,7 +162,7 @@ def to_gpu(array, device=None):
 
 
 def is_in_gpu(array):
-    return array.device.type == "cuda"
+    return array.device.type in ["cuda", "mps"]
 
 
 def isin(x, y):

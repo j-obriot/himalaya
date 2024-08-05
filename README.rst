@@ -72,8 +72,8 @@ Himalaya backends
 =================
 
 ``Himalaya`` can be used seamlessly with different backends.
-The available backends are ``numpy`` (default), ``cupy``, ``torch``, and
-``torch_cuda``.
+The available backends are ``numpy`` (default), ``cupy``, ``torch``,
+``torch_cuda``, and ``torch_mps``.
 To change the backend, call:
 
 .. code-block:: python
@@ -90,7 +90,7 @@ GPU acceleration
 ----------------
 
 To run ``himalaya`` on a graphics processing unit (GPU), you can use either
-the ``cupy`` or the ``torch_cuda`` backend:
+the ``cupy``, ``torch_cuda`` or the ``torch_mps`` backend:
 
 .. code-block:: python
 
@@ -99,6 +99,9 @@ the ``cupy`` or the ``torch_cuda`` backend:
 
     data = backend.asarray(data)
 
+(note that the mps backend requires you to set the environment variable
+``PYTORCH_ENABLE_MPS_FALLBACK=1`` to automatically make unsupported operations
+fallback to cpu)
 
 Installation
 ============

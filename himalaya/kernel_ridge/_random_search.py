@@ -536,6 +536,10 @@ def _decompose_kernel_ridge(Ktrain, alphas, Ktest=None, n_alphas_batch=None,
     if n_alphas_batch is None:
         n_alphas_batch = len(alphas)
 
+    if method == "eigh" and Ktrain.device.type == "mps":
+        print("MPS doesn't support eigh, falling back to SVD")
+        method = "svd"
+
     if method == "eigh":
         # diagonalization: K = V @ np.diag(eigenvalues) @ V.T
         eigenvalues, V = backend.eigh(Ktrain)
