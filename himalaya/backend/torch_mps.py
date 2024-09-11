@@ -15,6 +15,7 @@ if not torch.backends.mps.is_available():
 
 from ._utils import _dtype_to_str
 from ._utils import warn_if_not_float32
+from ._utils import _add_error_message
 
 ###############################################################################
 
@@ -86,3 +87,27 @@ def to_cpu(array):
 
 def to_gpu(array, device="mps"):
     return asarray(array, device=device)
+
+# eigh and svd fallback to cpu
+def svd(*a):
+    a = list(a)
+    for i in range(len(a)):
+        if type(a[i]) == torch.Tensor:
+            a[i] = a[i].cpu()
+    U, s, V = torch.linalg.svd(*a)
+    return U.to('mps'), s.to('mps'), V.to('mps')
+
+def _eigh(*a):
+    a = list(a)
+    for i in range(len(a)):
+        if type(a[i]) == torch.Tensor:
+            a[i] = a[i].cpu()
+    # eigenvalues, V = torch.linalg.eigh(*a)
+    eigenvalues, V = torch.linalg.eigh(*a)
+    return eigenvalues.to('mps'), V.to('mps')
+
+eigh = _add_error_message(
+        _eigh,
+        msg=(f"The eigenvalues decomposition failed on backend {name}. You may"
+             " try using `diagonalize_method='svd'`, or `solver_params={"
+             "'diagonalize_method': 'svd'}` if called through the class API."))
