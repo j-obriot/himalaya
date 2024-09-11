@@ -99,9 +99,7 @@ the ``cupy``, ``torch_cuda`` or the ``torch_mps`` backend:
 
     data = backend.asarray(data)
 
-(note that the mps backend requires you to set the environment variable
-``PYTORCH_ENABLE_MPS_FALLBACK=1`` to automatically make unsupported operations
-fallback to cpu)
+(note that the mps backend will fallback to cpu for svd and eigh operations)
 
 Installation
 ============
