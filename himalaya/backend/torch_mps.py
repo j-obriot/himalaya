@@ -5,6 +5,7 @@ set the environment variable PYTORCH_ENABLE_MPS_FALLBACK=1.
 """
 from .torch import *  # noqa
 import torch
+import numpy as np
 
 if not torch.backends.mps.is_available():
     import sys
@@ -103,8 +104,8 @@ def _eigh(*a):
         if type(a[i]) == torch.Tensor:
             a[i] = a[i].cpu()
     # eigenvalues, V = torch.linalg.eigh(*a)
-    eigenvalues, V = torch.linalg.eigh(*a)
-    return eigenvalues.to('mps'), V.to('mps')
+    eigenvalues, V = np.linalg.eigh(*a)
+    return torch.Tensor(eigenvalues).to('mps'), torch.Tensor(V).to('mps')
 
 eigh = _add_error_message(
         _eigh,
